@@ -1,6 +1,7 @@
 /* set user and group id and exec */
 
 #include <sys/types.h>
+#include <sys/stat.h>
 
 #include <err.h>
 #include <errno.h>
@@ -93,6 +94,15 @@ int main(int argc, char *argv[])
 				err(1, "malloc");
 		}
 	}
+
+	// Allow setuid'ed executable to write to stdout and stderr
+	// WARNING: Do not use outside of docker or the host's system
+	// permission will be changed.
+	if (chmod("/dev/stdout", 0622) < 0)
+		err(1, "chmod(/dev/stdout, 0622)");
+
+	if (chmod("/dev/stderr", 0622) < 0)
+		err(1, "chmod(/dev/stderr, 0622)");
 
 	if (setgid(gid) < 0)
 		err(1, "setgid(%i)", gid);
